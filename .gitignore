@@ -1,0 +1,11 @@
+zig-cache/
+zig-out/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+*.log

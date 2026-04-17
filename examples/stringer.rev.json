@@ -1,0 +1,29 @@
+{
+    "revsdk_version": "0.1",
+    "manifest_version": "0.1",
+    "tool": {
+        "id": "stringer",
+        "name": "Stringer",
+        "version": "0.1.0",
+        "description": "Extracts printable strings from binaries"
+    },
+    "adapter": {
+        "transport": "stdio-json",
+        "entrypoint": "./rev_adapter/stringer_adapter.py"
+    },
+    "operations": [
+        {
+            "id": "extract_strings",
+            "name": "Extract Strings"
+        }
+    ],
+    "widgets": [
+        {
+            "id": "string_table",
+            "name": "String Table",
+            "type": "table",
+            "min_w": 40,
+            "min_h": 10
+        }
+    ]
+}
