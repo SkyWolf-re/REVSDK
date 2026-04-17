@@ -1,4 +1,4 @@
 .{
-    .name = "revsdk",
+    .name = .revsdk,
     .version = "0.1.0",
 }
