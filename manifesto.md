@@ -653,27 +653,3 @@ REVSDK v0.1 is considered successful if:
 6. The same message semantics remain compatible with future transport changes.
 
 ---
-
-## 21. Open Questions
-
-These should be answered before freezing v0.1:
-
-1. Should `target.header` be free-form metadata or partially standardized?
-2. Should `body` remain fully opaque to REVcore, or should some body schemas be documented per operation?
-3. Should widget descriptors be declared only in manifests, or repeated in handshake responses for verification?
-4. Should stdio binding use line-delimited JSON or framed messages?
-5. Should exact version match be required for v0.1, or only major/minor compatibility?
-
----
-
-## 22. Recommendation
-
-For implementation, the next step should be:
-
-1. freeze this document into a small v0.1 spec
-2. create the REVSDK repository
-3. define JSON examples as canonical fixtures
-4. make Stringer the first reference implementation
-5. update REVcore registry to load manifests and perform handshake validation
-
-That would establish the first real REVenge protocol contract.
