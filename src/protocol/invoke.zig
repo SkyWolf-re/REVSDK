@@ -1,18 +1,21 @@
 //! invoke.zig
 //!
 //! Author: skywolf
-//! Date: 2026-04-17 | Last modified: 2026-08-04
+//! Date: 2026-04-17 | Last modified: 2026-08-15
 //!
 //! Invocation request and response types for REVSDK v0.1.
 //! - Defines common target and scope objects used when requesting tool operations
+//! - Defines canonical scope construction and validation rules
 //! - Defines the request sent by REVcore to adapters for concrete analysis work
 //! - Defines the success/error response shape returned by adapters after execution
 //!
 //! Notes:
 //! - `target` carries shared analysis context known by REVcore
 //! - Tool-specific fields remain flexible through nested JSON objects
-//! - This module validates protocol shape
-//! - Byte ranges use half-open semantics [start, end)
+//! - Request identifiers and operation identifiers are syntactically constrained
+//! - This module validates protocol shape, not tool-specific semantics
+//! - Byte ranges use zero-based, half-open semantics [start, end)
+//! - Byte-range length is derived as `end - start`
 
 const std = @import("std");
 
@@ -62,11 +65,72 @@ pub const Scope = struct {
     /// Used only by `.byte_range`
     start: ?u64 = null,
 
-    /// Exclusive end offset used only by `.byte_range`
+    /// Used only by `.byte_range`
     end: ?u64 = null,
 
     /// Used only by `.section`
     name: ?[]const u8 = null,
+
+    pub fn wholeFile() Scope {
+        return .{
+            .kind = .whole_file,
+        };
+    }
+
+    pub fn byteRange(start: u64, end: u64) !Scope {
+        const scope: Scope = .{
+            .kind = .byte_range,
+            .start = start,
+            .end = end,
+        };
+
+        try scope.validate();
+        return scope;
+    }
+
+    pub fn byteRangeFromLength(
+        start: u64,
+        byte_length: u64,
+    ) !Scope {
+        if (byte_length == 0) {
+            return error.InvalidByteRangeScope;
+        }
+
+        const end = std.math.add(
+            u64,
+            start,
+            byte_length,
+        ) catch return error.ByteRangeOverflow;
+
+        return byteRange(start, end);
+    }
+
+    pub fn section(name: []const u8) !Scope {
+        const scope: Scope = .{
+            .kind = .section,
+            .name = name,
+        };
+
+        try scope.validate();
+        return scope;
+    }
+
+    /// Returns the number of bytes covered by a valid byte-range scope
+    /// Returns null for non-byte-range or malformed scopes
+    pub fn length(self: Scope) ?u64 {
+        if (self.kind != .byte_range) {
+            return null;
+        }
+
+        const start = self.start orelse return null;
+        const end = self.end orelse return null;
+
+        if (start >= end) {
+            return null;
+        }
+
+        return end - start;
+    }
 
     pub fn validate(self: Scope) !void {
         switch (self.kind) {
@@ -153,17 +217,13 @@ pub const InvokeRequest = struct {
             return error.InvalidMessageType;
         }
 
-        if (self.request_id.len == 0) {
-            return error.MissingRequestId;
-        }
+        try common.validateRequestId(self.request_id);
 
         if (self.tool_id.len == 0) {
             return error.MissingToolId;
         }
 
-        if (self.operation.len == 0) {
-            return error.MissingOperation;
-        }
+        try common.validateOperationId(self.operation);
 
         try self.target.validate();
         try self.scope.validate();
@@ -252,17 +312,13 @@ pub const InvokeResponse = struct {
             return error.InvalidMessageType;
         }
 
-        if (self.request_id.len == 0) {
-            return error.MissingRequestId;
-        }
+        try common.validateRequestId(self.request_id);
 
         if (self.tool_id.len == 0) {
             return error.MissingToolId;
         }
 
-        if (self.operation.len == 0) {
-            return error.MissingOperation;
-        }
+        try common.validateOperationId(self.operation);
 
         if (self.summary) |summary| {
             try requireObject(
@@ -308,6 +364,7 @@ pub const InvokeResponse = struct {
         self: InvokeResponse,
         request: InvokeRequest,
     ) !void {
+        try request.validate();
         try self.validate();
 
         if (!std.mem.eql(

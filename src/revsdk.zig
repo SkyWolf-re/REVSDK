@@ -3,6 +3,9 @@ pub const protocol = @import("protocol/mod.zig");
 pub const REVSDK_VERSION = protocol.REVSDK_VERSION;
 pub const MANIFEST_VERSION = protocol.MANIFEST_VERSION;
 
+pub const MAX_REQUEST_ID_LEN = protocol.MAX_REQUEST_ID_LEN;
+pub const MAX_OPERATION_ID_LEN = protocol.MAX_OPERATION_ID_LEN;
+
 pub const MAX_MANIFEST_SIZE = protocol.MAX_MANIFEST_SIZE;
 pub const MAX_HANDSHAKE_REQUEST_SIZE = protocol.MAX_HANDSHAKE_REQUEST_SIZE;
 pub const MAX_HANDSHAKE_RESPONSE_SIZE = protocol.MAX_HANDSHAKE_RESPONSE_SIZE;
@@ -14,6 +17,9 @@ pub const Status = protocol.Status;
 pub const Transport = protocol.Transport;
 pub const WidgetType = protocol.WidgetType;
 pub const ScopeKind = protocol.ScopeKind;
+
+pub const validateRequestId = protocol.validateRequestId;
+pub const validateOperationId = protocol.validateOperationId;
 
 pub const ProtocolErrorCode = protocol.ProtocolErrorCode;
 pub const ProtocolError = protocol.ProtocolError;

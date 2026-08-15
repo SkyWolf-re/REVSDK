@@ -1,7 +1,7 @@
 //! common.zig
 //!
 //! Author: skywolf
-//! Date: 2026-04-17
+//! Date: 2026-04-17 | Last modified: 2026-08-15
 //!
 //! Shared protocol enums and descriptor types for REVSDK v0.1.
 //! - Defines message categories, status values, transports, scope kinds, and widget kinds
@@ -14,6 +14,7 @@
 //! - This file should contain shared protocol concepts, not tool-specific logic
 
 const std = @import("std");
+const constants = @import("constants.zig");
 
 pub const MessageType = enum {
     handshake_request,
@@ -94,3 +95,50 @@ pub const WidgetDescriptor = struct {
     min_w: u16,
     min_h: u16,
 };
+
+pub fn validateRequestId(request_id: []const u8) !void {
+    if (request_id.len == 0) {
+        return error.MissingRequestId;
+    }
+
+    if (request_id.len > constants.MAX_REQUEST_ID_LEN) {
+        return error.RequestIdTooLong;
+    }
+
+    for (request_id) |char| {
+        const valid =
+            std.ascii.isAlphanumeric(char) or
+            char == '-' or
+            char == '_' or
+            char == '.';
+
+        if (!valid) {
+            return error.InvalidRequestId;
+        }
+    }
+}
+
+pub fn validateOperationId(operation_id: []const u8) !void {
+    if (operation_id.len == 0) {
+        return error.MissingOperation;
+    }
+
+    if (operation_id.len > constants.MAX_OPERATION_ID_LEN) {
+        return error.OperationIdTooLong;
+    }
+
+    if (!std.ascii.isLower(operation_id[0])) {
+        return error.InvalidOperationId;
+    }
+
+    for (operation_id[1..]) |char| {
+        const valid =
+            std.ascii.isLower(char) or
+            std.ascii.isDigit(char) or
+            char == '_';
+
+        if (!valid) {
+            return error.InvalidOperationId;
+        }
+    }
+}
