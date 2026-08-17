@@ -86,12 +86,20 @@ pub const AdapterInfo = struct {
 pub const OperationDescriptor = struct {
     id: []const u8,
     name: []const u8,
+
+    pub fn validate(self: OperationDescriptor) !void {
+        try validateOperationId(self.id);
+
+        if (self.name.len == 0) {
+            return error.InvalidOperationName;
+        }
+    }
 };
 
 pub const WidgetDescriptor = struct {
     id: []const u8,
     name: []const u8,
-    widget_type: WidgetType,
+    type: WidgetType,
     min_w: u16,
     min_h: u16,
 };

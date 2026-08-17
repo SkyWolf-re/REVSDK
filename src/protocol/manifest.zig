@@ -150,7 +150,7 @@ pub fn parseManifest(
         widgets[i] = .{
             .id = try dupString(allocator, try getString(item.object, "id")),
             .name = try dupString(allocator, try getString(item.object, "name")),
-            .widget_type = try common.WidgetType.fromString(try getString(item.object, "type")),
+            .type = try common.WidgetType.fromString(try getString(item.object, "type")),
             .min_w = try getU16(item.object, "min_w"),
             .min_h = try getU16(item.object, "min_h"),
         };
